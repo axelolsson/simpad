@@ -28,8 +28,14 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
 
             // View Event Handlers
             events: {
+              "tap .tool":  "selectTool",
+              "tap .color": "selectColor",
+              "touchend .upper-canvas": "saveState",
+
+            // For debugging
               "click .tool":  "selectTool",
               "click .color": "selectColor",
+              "mouseup .upper-canvas": "saveState",
             },
 
             // Renders the view's template to the UI
@@ -44,6 +50,7 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
             },
 
            selectTool: function(event) {
+              event.preventDefault();
               $('.tool').removeClass('active');
               currentTool = event.currentTarget;
               currentToolId = currentTool.id;
@@ -57,9 +64,18 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
                   canvas.isDrawingMode = false;
                   $(currentTool).addClass('active');
                   break;
-                case "erase_tool":
-                  canvas.isDrawingMode = false;
+                case "clear_tool":
                   $(currentTool).addClass('active');
+                  if (confirm('Are you sure?')) {
+                    canvas.clear();
+                  }
+                  $(currentTool).removeClass('active');
+                  break;
+                case "undo_tool":
+                  this.handleUndo();
+                  break;
+                case "redo_tool":
+                  this.handleRedo();
                   break;
                 default:
                   break;
@@ -103,11 +119,43 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
 
              },
 
+             saveState: function() {
+
+               objects = canvas._objects;
+               currentState = [];
+
+               for (var i = 0; i < objects.length; i++) {
+                 currentState.push(objects[i]);
+               };
+
+             },
+
+             handleUndo: function() {
+               console.log('handle undo');
+
+               removal = [];
+
+               for (var i = 0; i < objects.length; i++) {
+                 removal.push(objects[i]);
+               };
+
+               for (var i = 0; i <= removal.length; i++) {
+                 canvas.remove($(removal).last()[i]);
+               }
+
+               removal.pop();
+
+             },
+
+             handleRedo: function() {
+               console.log('handle redo');
+
+             },
+
         });
 
         // Returns the View class
         return View;
 
     }
-
 );

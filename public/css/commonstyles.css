@@ -82,24 +82,13 @@ body {
   left: 200px;
 }
 
-.behaviormenu {
-  display: none;
-  background: #504848;
-  height: 768px;
-  position: absolute;
-  right: 0;
-  width: 512px;
-  z-index: 3;
-}
-
 .toolbar {
   background: #504848;
   float: left;
-  height: 512px;
-  margin-top: -256px;
+  height: 100%;
   position: absolute;
   left: 0;
-  top: 50%;
+  top: 45px;
   width: 200px;
 }
 

@@ -2,7 +2,7 @@
   <ul class="tools">
     <li class="tool" id="draw_tool"><a href="#">Draw</a></li>
     <li class="tool" id="move_tool"><a href="#">Move</a></li>
-<!--    <li class="tool" id="erase_tool"><a href="#">Eraser</a></li> -->
+    <li class="tool" id="clear_tool"><a href="#">Clear</a></li>
   </ul>
   <ul class="colors">
     <li class="color red"><a href="#">Red</a></li>
@@ -12,26 +12,11 @@
     <li class="color black"><a href="#">Black</a></li>
     <li class="color brown"><a href="#">Brown</a></li>
   </ul>
-</div>
+  <ul class="tools">
+    <li class="tool" id="undo_tool"><a href="#">Undo</a></li>
+<!--    <li class="tool" id="redo_tool"><a href="#">Redo</a></li> -->
+  </ul>
 
-<div class="behaviormenu">
-  <h2>Add behavior</h2>
-
-  <label for="name">Write a name</label>
-  <input name="name" type="text"/>
-
-  <label for="type">Write a type (e.g. planet, vehicle etc.)</label>
-  <input name="type" type="text"/>
-
-  <label for="behaviors">Select a behavior</label>
-  <select class="behaviors" name="behaviors">
-    <option class="behavior">Go</option>
-    <option class="behavior">Rotate</option>
-    <option class="behavior">Split</option>
-    <option class="behavior">Circle</option>
-  </select>
-
-  <button>Apply</button>
 </div>
 
 <canvas id="myCanvas"></canvas>
