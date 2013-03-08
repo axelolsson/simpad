@@ -77,10 +77,12 @@
             config = {
 
               // Loaded when not in production mode
-              "dev-css": ["css/libs/bootstrap.css"],
+//              "dev-css": ["css/libs/bootstrap.css"],
+              "dev-css": ["css/libs/jquery.mobile.css"],
 
               // Loaded when in production mode
-              "prod-css": ["css/libs/bootstrap.min.css"],
+//              "prod-css": ["css/libs/bootstrap.min.css"],
+              "prod-css": ["css/libs/jquery.mobile.min.css"],
 
               // Loaded when not in production mode
               "dev-js": [{ "data-main": "js/app/config/DesktopInit.js", "src": "js/libs/require.js" }],
@@ -237,7 +239,7 @@
       <a href="#" data-role="button" data-theme="a">Add behavior</a>
     </div>
 
-    <div data-role="header" data-position="fixed" data-fullscreen="true">
+    <div data-role="header" data-position="fixed" data-fullscreen="true" data-tap-toggle="false">
       <h1>SimPad – Drawing to Learn</h1>
       <a href="#mypanel" data-icon="plus" data-iconpos="notext">Behaviors</a>
     </div>

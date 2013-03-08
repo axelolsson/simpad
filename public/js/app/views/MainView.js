@@ -9,7 +9,7 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
             // The DOM Element associated with this view
             el: ".canvas",
             canvas: null,
-
+            lastTime: 0,
             // View constructor
             initialize: function() {
 
@@ -17,24 +17,27 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
               this.render();
 
               canvas = new fabric.Canvas('myCanvas');
-              canvas.setHeight(702);
+              canvas.setHeight(716);
               canvas.setWidth(824);
 
               fabric.Object.prototype.cornersize = 30;
 
               canvas.freeDrawingLineWidth = 3;
 
+              canvas.observe("object:selected", this.objectSelectedHandler);
             },
 
             // View Event Handlers
             events: {
               "tap .tool":  "selectTool",
               "tap .color": "selectColor",
+
               "touchend .upper-canvas": "saveState",
 
             // For debugging
               "click .tool":  "selectTool",
               "click .color": "selectColor",
+
               "mouseup .upper-canvas": "saveState",
             },
 
@@ -50,8 +53,9 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
             },
 
            selectTool: function(event) {
-              event.preventDefault();
               $('.tool').removeClass('active');
+              $('.color').removeClass('active');
+
               currentTool = event.currentTarget;
               currentToolId = currentTool.id;
 
@@ -129,6 +133,18 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
                };
 
              },
+
+             objectSelectedHandler: function(event) {
+               console.log('Selected');
+
+               var date = new Date();
+               var now = date.getTime();
+               if(now - this.lastTime < 500){
+                 $("#mypanel").panel( "open" );
+               }
+               this.lastTime = now;
+             },
+
 
              handleUndo: function() {
                console.log('handle undo');

@@ -13,7 +13,7 @@ require.config({
       // --------------
       "jquery": "libs/jquery",
 
-      "jqueryui": "libs/jqueryui",
+      "jquerymobile": "libs/jquery.mobile",
 
       "underscore": "libs/lodash",
 
@@ -22,8 +22,6 @@ require.config({
       // Plugins
       // -------
       "backbone.validateAll": "libs/plugins/Backbone.validateAll",
-
-      "bootstrap": "libs/plugins/bootstrap",
 
       "text": "libs/plugins/text",
 
@@ -46,12 +44,6 @@ require.config({
   // Sets the configuration for your third party scripts that are not AMD compatible
   shim: {
 
-      // Twitter Bootstrap jQuery plugins
-      "bootstrap": ["jquery"],
-
-      // jQueryUI
-      "jqueryui": ["jquery"],
-
       // SimPad
       "simpad": ["paper"],
 
@@ -73,7 +65,7 @@ require.config({
 });
 
 // Includes Desktop Specific JavaScript files here (or inside of your Desktop router)
-require(["jquery", "backbone", "routers/DesktopRouter", "jqueryui", "bootstrap", "backbone.validateAll"],
+require(["jquery", "backbone", "routers/DesktopRouter", "jquerymobile", "backbone.validateAll"],
 
   function($, Backbone, DesktopRouter) {
 
