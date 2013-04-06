@@ -10,6 +10,7 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
             el: ".canvas",
             canvas: null,
             lastTime: 0,
+
             // View constructor
             initialize: function() {
 
@@ -25,6 +26,7 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
               canvas.freeDrawingLineWidth = 3;
 
               canvas.observe("object:selected", this.objectSelectedHandler);
+
             },
 
             // View Event Handlers
@@ -35,10 +37,10 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
               "touchend .upper-canvas": "saveState",
 
             // For debugging
-              "click .tool":  "selectTool",
-              "click .color": "selectColor",
+//              "click .tool":  "selectTool",
+//              "click .color": "selectColor",
 
-              "mouseup .upper-canvas": "saveState",
+//              "mouseup .upper-canvas": "saveState",
             },
 
             // Renders the view's template to the UI
@@ -74,6 +76,31 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
                     canvas.clear();
                   }
                   $(currentTool).removeClass('active');
+                  break;
+                case "group_tool":
+                  var clones = [];
+
+                  var currentGroup = canvas.getActiveGroup();
+
+                  if (canvas.getActiveGroup()) {
+                    canvas.getActiveGroup().forEachObject(function (o) {
+                      var clone = o.clone();
+                      canvas.remove(o);
+                      clones.push(clone);
+                    });
+
+                    var group = new fabric.Group(clones, {
+                      left: currentGroup.left,
+                      top: currentGroup.top,
+                    });
+
+                    canvas.add(group);
+//                    canvas.discardActiveGroup();
+                    canvas.setActiveGroup();
+                    canvas.renderAll();
+
+                  }
+
                   break;
                 case "undo_tool":
                   this.handleUndo();
@@ -132,10 +159,10 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
                  currentState.push(objects[i]);
                };
 
+               console.log(currentState);
              },
 
              objectSelectedHandler: function(event) {
-               console.log('Selected');
 
                var date = new Date();
                var now = date.getTime();
@@ -145,27 +172,34 @@ define(["jquery", "backbone", "fabric", "models/Model", "text!templates/drawing.
                this.lastTime = now;
              },
 
-
              handleUndo: function() {
-               console.log('handle undo');
 
-               removal = [];
+               if(canvas._objects.length > 0) {
+                 removal = [];
 
-               for (var i = 0; i < objects.length; i++) {
-                 removal.push(objects[i]);
-               };
+                 for (var i = 0; i < objects.length; i++) {
+                   removal.push(objects[i]);
+                 };
 
-               for (var i = 0; i <= removal.length; i++) {
-                 canvas.remove($(removal).last()[i]);
+                 for (var i = 0; i <= removal.length; i++) {
+                   canvas.remove($(removal).last()[i]);
+                 }
+
+                 removal.pop();
+               } else {
+                 alert('There\s nothing to undo!');
                }
-
-               removal.pop();
-
              },
 
              handleRedo: function() {
-               console.log('handle redo');
+               console.log(currentState);
 
+               for (var i = 0; i <= canvas._objects.length; i++) {
+                 canvas.add($(currentState).last()[i]);
+                 console.log(i);
+               }
+
+               console.log(currentState);
              },
 
         });

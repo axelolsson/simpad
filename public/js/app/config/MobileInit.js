@@ -48,9 +48,6 @@ require.config({
       // jQuery Mobile
       "jquerymobile": ["jquery"],
 
-      // SimPad
-      "simpad": ["paper"],
-
       // Backbone
       "backbone": {
 
