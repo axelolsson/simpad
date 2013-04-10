@@ -1,8 +1,8 @@
 // DesktopRouter.js
 // ----------------
-define(["jquery", "backbone", "models/Model", "views/MainView", "collections/Collection"],
+define(["jquery", "backbone", "models/Element", "views/MainView", "views/SimulationView", "collections/Elements"],
 
-    function($, Backbone, Model, View, Collection) {
+    function($, Backbone, Element, MainView, SimulationView, Elements) {
 
         var DesktopRouter = Backbone.Router.extend({
 
@@ -17,17 +17,23 @@ define(["jquery", "backbone", "models/Model", "views/MainView", "collections/Col
             routes: {
 
                 // When there is no hash on the url, the home method is called
-                "": "index"
+                "": "index",
+                "simulate": "simulation"
 
             },
 
             index: function() {
 
                 // Instantiates a new view which will render the header text to the page
-                new View();
+                new MainView();
+
+            },
+
+            simulation: function() {
+                // Instantiates a new view which will render the header text to the page
+                new SimulationView();
 
             }
-
         });
 
         // Returns the DesktopRouter class

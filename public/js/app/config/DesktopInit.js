@@ -21,6 +21,7 @@ require.config({
 
       // Plugins
       // -------
+      "backbone.localStorage": "libs/plugins/backbone.localStorage.min",
       "backbone.validateAll": "libs/plugins/Backbone.validateAll",
 
       "text": "libs/plugins/text",
@@ -55,14 +56,18 @@ require.config({
 
       },
 
+      // Backbone.localStorage plugin that depends on Backbone
+      "backbone.localStorage": ["backbone"],
+
       // Backbone.validateAll plugin that depends on Backbone
       "backbone.validateAll": ["backbone"]
+
   }
 
 });
 
 // Includes Desktop Specific JavaScript files here (or inside of your Desktop router)
-require(["jquery", "backbone", "routers/DesktopRouter", "jquerymobile", "backbone.validateAll"],
+require(["jquery", "backbone", "routers/DesktopRouter", "jquerymobile", "backbone.localStorage", "backbone.validateAll"],
 
   function($, Backbone, DesktopRouter) {
 

@@ -69,23 +69,28 @@ textarea {
   text-shadow: none;
 }
 
+.ui-content {
+  padding: 0px;
+}
+
 body {
-  background: #504848;
   font-family: Futura, Helvetica, Arial, sans-serif;
   margin: 0;
 }
-
+.canvas {
+  height: 702px;
+  margin: 0px 0px 0px 200px;
+  width: 824px;
+}
 .canvas-container {
   background: #fff;
-  position: absolute;
-  top: 30px;
-  left: 185px;
+
 }
 
 .toolbar {
   background: #504848;
   float: left;
-  height: 100%;
+  height: 703px;
   position: absolute;
   left: 0;
   top: 45px;
@@ -118,6 +123,10 @@ body {
   padding: 29px inherit;
   text-align: center;
   text-decoration: none;
+}
+
+#save_tool {
+  width: 170px;
 }
 
 .toolbar .colors {
@@ -156,6 +165,39 @@ body {
 }
 
 .toolbar .colors .color.yellow a { color: #000000 }
+
+#simulationCanvas {
+  left: 0px;
+  overflow: hidden;
+  position: absolute;
+  top: 125px;
+}
+
+.simulation_toolbar {
+  background: #504848;
+  height: 80px;
+  left: 0px;
+  position: absolute;
+  width: 1024px;
+}
+
+.simulation_toolbar ul {
+  list-style: none;
+  line-height: 48px;
+  display: block;
+}
+
+.simulation_toolbar ul li {
+  float: left;
+  margin: 0 35px 0 0;
+}
+
+.simulation_toolbar ul li a{
+  color: #fff;
+  font-size: 18pt;
+  padding: 25px;
+  text-decoration: none;
+}
 
 /* ==========================================================================
    Helper classes
@@ -273,19 +315,4 @@ textarea[contenteditable] {
 
 .clearfix {
     *zoom: 1;
-}
-
-/* ==========================================================================
-   EXAMPLE Media Queries for Responsive Design.
-   Theses examples override the primary ('mobile first') styles.
-   Modify as content requires.
-   ========================================================================== */
-
-@media only screen and (min-width: 800px) {
-    /* Style adjustments for viewports that meet the condition */
-}
-
-@media only screen and (-webkit-min-device-pixel-ratio: 1.5),
-       only screen and (min-resolution: 144dpi) {
-    /* Style adjustments for viewports that meet the condition */
 }

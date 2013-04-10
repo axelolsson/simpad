@@ -213,7 +213,7 @@
 <body>
 
   <div data-role="page" id="home">
-    <div data-role="panel" id="mypanel" data-position="right" data-display="overlay">
+    <div data-role="panel" id="behavior_panel" data-position="right" data-display="overlay">
       <h3>Add behavior</h3>
       <div data-role="collapsible-set" data-inset="false">
           <div data-role="collapsible">
@@ -239,9 +239,17 @@
       <a href="#" data-role="button" data-theme="a">Add behavior</a>
     </div>
 
-    <div data-role="header" data-position="fixed" data-fullscreen="true" data-tap-toggle="false">
+    <div data-role="panel" id="menu_panel" data-display="push" data-position="left" data-theme="a">
+      <div class="ui-panel-inner">
+        <h3>Menu</h3>
+        <a class="save" data-role="button" data-theme="b" href="#">Save</a>
+      </div>
+    </div>
+
+    <div data-role="header">
+      <a class="ui-btn-left" data-inline="true" data-mini="true" data-role="button" href="#menu_panel">Menu</a>
       <h1>SimPad – Drawing to Learn</h1>
-      <a href="#mypanel" data-icon="plus" data-iconpos="notext">Behaviors</a>
+      <a class="ui-btn-right" data-inline="true" data-mini="true" data-role="button" href="#simulate">Simulate</a>
     </div>
 
     <div data-role="content">

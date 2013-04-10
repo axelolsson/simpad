@@ -1,8 +1,8 @@
 // MobileRouter.js
 // ---------------
-define(["jquery", "backbone", "models/Model", "views/MainView", "collections/Collection"],
+define(["jquery", "backbone", "models/Element", "views/MainView", "views/SimulationView", "collections/Elements"],
 
-    function($, Backbone, UserModel, View, Collection) {
+    function($, Backbone, Element, MainView, SimulationView, Elements) {
 
         var MobileRouter = Backbone.Router.extend({
 
@@ -17,17 +17,23 @@ define(["jquery", "backbone", "models/Model", "views/MainView", "collections/Col
             routes: {
 
                 // When there is no hash bang on the url, the home method is called
-                "": "index"
+                "": "index",
+                "simulate": "simulation",
 
             },
 
             index: function() {
 
                 // Instantiates a new view which will render the header text to the page
-                new View();
+                new MainView();
+
+            },
+
+            simulation: function() {
+
+                new SimulationView();
 
             }
-
         });
 
         // Returns the MobileRouter class
