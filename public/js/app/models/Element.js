@@ -1,6 +1,6 @@
 // Element.js
 // --------
-define(["jquery", "backbone"],
+define(["jquery", "backbone", "fabric"],
 
     function($, Backbone) {
 
@@ -23,8 +23,6 @@ define(["jquery", "backbone"],
             },
 
             // Default values for all of the Model attributes
-            defaults: {
-            }
 
         });
 

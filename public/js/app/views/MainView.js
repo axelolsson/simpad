@@ -1,8 +1,8 @@
 // View.js
 // -------
-define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element", "text!templates/drawing.html"],
+define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element", "views/BehaviorView", "text!templates/drawing.html"],
 
-    function($, Backbone, Fabric, Elements, Element, template){
+    function($, Backbone, Fabric, Elements, Element, BehaviorView, template){
 
         var View = Backbone.View.extend({
 
@@ -13,25 +13,67 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
 
             // View constructor
             initialize: function() {
+              _.bindAll(this);
               var self = this;
+              self.render();
+
+              fabric.CustomGroup = fabric.util.createClass(fabric.Group, {
+                type: 'group',
+
+                initialize: function (options) {
+                    options || (options = {});
+                    this.callSuper('initialize', options);
+                    this.set('element_name', options.element_name || null);
+                    this.set('element_type', options.element_type || null);
+                },
+
+                toObject: function () {
+                    return fabric.util.object.extend(this.callSuper('toObject'), {
+                        element_name: this.get('element_name'),
+                        element_type: this.get('element_type')
+                    });
+                },
+
+                _render: function (ctx) {
+                    this.callSuper('_render', ctx);
+                }
+
+              });
+
+              fabric.CustomGroup.fromObject = function (object) {
+                  return new fabric.Group(object.options, object);
+              };
+
+              fabric.CustomGroup.async = true;
+
+              canvas = new fabric.Canvas('drawingCanvas');
+
+              canvas.setHeight(702);
+              canvas.setWidth(824);
+
+              canvas.freeDrawingLineWidth = 3;
+              canvas.selectionColor = 'rgba(0,255,0,0.3)';
+              canvas.selectionBorderColor = 'green';
+
+              fabric.Object.prototype.borderColor = 'green';
+              fabric.Object.prototype.cornerColor = 'green';
+              fabric.Object.prototype.cornersize = 30;
+
+              canvas.observe("object:selected", self.objectSelectedHandler);
 
               require(["Elements"], function(Elements) {
+
                 this.collection = new Elements();
-                this.collection.fetch().done(function(collection){
+
+                this.collection.fetch().done(function(collection) {
 
                   var c = JSON.stringify(collection.pop());
-
-                  self.render();
-
-                  canvas = new fabric.Canvas('drawingCanvas');
-                  canvas.setHeight(702);
-                  canvas.setWidth(824);
-                  canvas.freeDrawingLineWidth = 3;
-                  fabric.Object.prototype.cornersize = 30;
-                  canvas.observe("object:selected", this.objectSelectedHandler);
                   canvas.loadFromJSON(c);
+
                 });
+
               });
+
 
             },
 
@@ -39,10 +81,7 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
             events: {
               "tap .tool":  "selectTool",
               "tap .color": "selectColor",
-              "click #save_tool": "saveCanvas",
-
-              "touchend .upper-canvas": "saveState",
-
+              "tap #save_tool": "saveCanvas",
             },
 
             // Renders the view's template to the UI
@@ -54,19 +93,26 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
               // Dynamically updates the UI with the view's template
               this.$el.html(this.template);
 
+              return this.el;
+
             },
 
             saveCanvas: function(event) {
-              var c = canvas.toJSON();
+              var c = canvas.toJSON(['element_name', 'element_type']);
 
-              require(["Elements"], function(Elements) {
-                this.collection = new Elements();
-                this.model = new Element();
+              try {
+                require(["Elements"], function(Elements) {
+                  this.collection = new Elements();
+                  this.model = new Element(c);
 
-                this.model.set(c);
-                this.collection.create(this.model);
-                this.model.save();
-              });
+                  this.collection.create(this.model);
+                  this.model.save();
+                });
+              } catch(e) {
+                alert('Error occured ' + e);
+              } finally {
+                alert('All done');
+              }
 
             },
 
@@ -94,29 +140,10 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
                    $(currentTool).removeClass('active');
                    break;
                  case "group_tool":
-                   var clones = [];
-
-                   var currentGroup = canvas.getActiveGroup();
-
-                   if (canvas.getActiveGroup()) {
-                     canvas.getActiveGroup().forEachObject(function (o) {
-                       var clone = o.clone();
-                       canvas.remove(o);
-                       clones.push(clone);
-                     });
-
-                     var group = new fabric.Group(clones, {
-                       left: currentGroup.left,
-                       top: currentGroup.top,
-                     });
-
-                     canvas.add(group);
-                     canvas.deactivateAllWithDispatch().renderAll();
-                     canvas.setActiveGroup();
-                     canvas.renderAll();
-
-                   }
-
+                   this.handleGroup();
+                   break;
+                 case "ungroup_tool":
+                   this.handleUngroup();
                    break;
                  case "undo_tool":
                    this.handleUndo();
@@ -167,54 +194,135 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
               },
 
               saveState: function() {
-
+/*
                 objects = canvas._objects;
                 currentState = [];
 
                 for (var i = 0; i < objects.length; i++) {
                   currentState.push(objects[i]);
                 };
-
+*/
               },
 
               objectSelectedHandler: function(event) {
+
                 var date = new Date();
                 var now = date.getTime();
                 if(now - this.lastTime < 500){
-                  $("#behavior_panel").panel( "open" );
+                  this.behaviorView = new BehaviorView(event.target);
+                  $("#behavior_panel").panel("open");
                 }
                 this.lastTime = now;
 
               },
 
-              handleUndo: function() {
+              addClones: function(clones, currentGroup) {
 
-                if(canvas._objects.length > 0) {
-                  removal = [];
+                var currentTop = currentGroup.getTop();
+                var currentLeft = currentGroup.getLeft();
 
-                  for (var i = 0; i < objects.length; i++) {
-                    removal.push(objects[i]);
-                  };
+                var group = new fabric.CustomGroup(clones, {
+                    left: currentLeft,
+                    top: currentTop,
+                });
 
-                  for (var i = 0; i <= removal.length; i++) {
-                    canvas.remove($(removal).last()[i]);
-                  }
+                canvas.add(group);
+                console.log('Grouped');
+                console.log(group);
+                canvas.discardActiveGroup();
+                canvas.setActiveGroup();
+                canvas.renderAll();
+              },
 
-                  removal.pop();
-                } else {
-                  alert('There\s nothing to undo!');
+              groupGroups: function(currentGroup) {
+                var clones = [];
+
+                var currentTop = currentGroup.getTop();
+                var currentLeft = currentGroup.getLeft();
+
+                var topDif = currentTop + o.getTop();
+                var leftDif = currentLeft + o.getLeft();
+
+                currentGroup.getObjects().forEach(function (object) {
+                    var clone = object.clone();
+
+                    clone.top += topDif;
+                    clone.left += leftDif;
+
+                    canvas.remove(currentGroup);
+                    canvas.remove(object);
+                    clones.push(clone);
+
+                });
+                this.addClones(clones, currentGroup);
+              },
+
+              groupPaths: function(currentGroup) {
+                var clones = [];
+
+                currentGroup.forEachObject(function (o) {
+                    var clone = o.clone();
+                    canvas.remove(o);
+                    clones.push(clone);
+                });
+
+                this.addClones(clones, currentGroup);
+              },
+
+              groupMixed: function(currentGroup) {
+                console.log(currentGroup);
+              },
+
+              handleGroup: function() {
+                var currentGroup = canvas.getActiveGroup();
+                var group = false;
+                var path = false;
+
+                if (currentGroup) {
+                    currentGroup.forEachObject(function (o) {
+                        if (o.type === 'group') {
+                            group = true;
+                        } else {
+                            path = true;
+                        }
+                    });
+
+                    if (group && !path) {
+                        this.groupGroups(currentGroup);
+                    } else if (!group && path) {
+                        this.groupPaths(currentGroup);
+                    } else {
+                        this.groupMixed(currentGroup);
+                    }
                 }
               },
 
-              handleRedo: function() {
-                console.log(currentState);
+              handleUngroup: function() {
+                var activeObject = canvas.getActiveObject();
+                var currentAngle = activeObject.getAngle();
+                var currentTop = activeObject.getTop();
+                var currentLeft = activeObject.getLeft();
 
-                for (var i = 0; i <= canvas._objects.length; i++) {
-                  canvas.add($(currentState).last()[i]);
-                  console.log(i);
+                var currentRadians = currentAngle * (Math.PI / 180);
+
+                if (activeObject) {
+                    activeObject.forEachObject(function (o) {
+                        var clone = o.clone();
+
+                        clone.top += currentTop;
+                        clone.left += currentLeft;
+
+                        canvas.add(clone);
+                        canvas.renderAll();
+                    });
+
+                    canvas.remove(activeObject);
                 }
-
               },
+
+              handleUndo: function() {},
+
+              handleRedo: function() {},
 
         });
 

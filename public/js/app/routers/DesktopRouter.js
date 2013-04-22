@@ -8,8 +8,8 @@ define(["jquery", "backbone", "models/Element", "views/MainView", "views/Simulat
 
             initialize: function() {
 
-                // Tells Backbone to start watching for hashchange events
-                Backbone.history.start();
+              // Tells Backbone to start watching for hashchange events
+              Backbone.history.start();
 
             },
 
@@ -18,7 +18,7 @@ define(["jquery", "backbone", "models/Element", "views/MainView", "views/Simulat
 
                 // When there is no hash on the url, the home method is called
                 "": "index",
-                "simulate": "simulation"
+                "simulate": "simulation",
 
             },
 
@@ -30,10 +30,8 @@ define(["jquery", "backbone", "models/Element", "views/MainView", "views/Simulat
             },
 
             simulation: function() {
-                // Instantiates a new view which will render the header text to the page
-                new SimulationView();
-
-            }
+              $.mobile.changePage(new SimulationView());
+            },
         });
 
         // Returns the DesktopRouter class

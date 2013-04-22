@@ -13,7 +13,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 
   <title>SimPad</title>
-  <meta name="description" content="SimPad – A drawing-based modeling web application">
+  <meta name="description" content="SimPad">
 
   <!-- Mobile viewport optimized: h5bp.com/viewport -->
   <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width">
@@ -213,41 +213,10 @@
 <body>
 
   <div data-role="page" id="home">
-    <div data-role="panel" id="behavior_panel" data-position="right" data-display="overlay">
-      <h3>Add behavior</h3>
-      <div data-role="collapsible-set" data-inset="false">
-          <div data-role="collapsible">
-              <h3>Name and type</h3>
-              <label for="name">Write a name</label>
-              <input name="name" type="text"/>
 
-              <label for="type">Write a type (e.g. planet, vehicle etc.)</label>
-              <input name="type" type="text"/>
-
-              <a href="#" data-role="button" data-theme="b">Save</a>
-          </div>
-          <div data-role="collapsible">
-              <h3>Move</h3>
-          </div>
-          <div data-role="collapsible">
-              <h3>Rotate</h3>
-          </div>
-          <div data-role="collapsible">
-              <h3>Circle</h3>
-          </div>
-      </div>
-      <a href="#" data-role="button" data-theme="a">Add behavior</a>
-    </div>
-
-    <div data-role="panel" id="menu_panel" data-display="push" data-position="left" data-theme="a">
-      <div class="ui-panel-inner">
-        <h3>Menu</h3>
-        <a class="save" data-role="button" data-theme="b" href="#">Save</a>
-      </div>
-    </div>
+    <div data-role="panel" id="behavior_panel" data-position="right" data-display="push"></div>
 
     <div data-role="header">
-      <a class="ui-btn-left" data-inline="true" data-mini="true" data-role="button" href="#menu_panel">Menu</a>
       <h1>SimPad – Drawing to Learn</h1>
       <a class="ui-btn-right" data-inline="true" data-mini="true" data-role="button" href="#simulate">Simulate</a>
     </div>

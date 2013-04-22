@@ -1,6 +1,6 @@
 // MobileRouter.js
 // ---------------
-define(["jquery", "backbone", "models/Element", "views/MainView", "views/SimulationView", "collections/Elements"],
+define(["jquery", "backbone", "models/Element", "views/MainView", "views/SimulationView", "views/BehaviorView", "collections/Elements"],
 
     function($, Backbone, Element, MainView, SimulationView, Elements) {
 
@@ -8,8 +8,8 @@ define(["jquery", "backbone", "models/Element", "views/MainView", "views/Simulat
 
             initialize: function() {
 
-                // Tells Backbone to start watching for hashchange events
-                Backbone.history.start();
+              // Tells Backbone to start watching for hashchange events
+              Backbone.history.start();
 
             },
 
@@ -30,10 +30,9 @@ define(["jquery", "backbone", "models/Element", "views/MainView", "views/Simulat
             },
 
             simulation: function() {
+              $.mobile.changePage(new SimulationView());
+            },
 
-                new SimulationView();
-
-            }
         });
 
         // Returns the MobileRouter class

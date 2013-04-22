@@ -26,6 +26,7 @@ require.config({
 
       "text": "libs/plugins/text",
 
+//      "fabric": "libs/plugins/fabricjs-1.1.6",
       "fabric": "libs/plugins/fabricjs-0.9.15.min",
 
       // Application Folders
@@ -70,6 +71,12 @@ require.config({
 require(["jquery", "backbone", "routers/DesktopRouter", "jquerymobile", "backbone.localStorage", "backbone.validateAll"],
 
   function($, Backbone, DesktopRouter) {
+
+    // Prevents all anchor click handling
+    $.mobile.linkBindingEnabled = false;
+
+    // Disabling this will prevent jQuery Mobile from handling hash changes
+    $.mobile.hashListeningEnabled = false;
 
     // Instantiates a new Desktop Router instance
     new DesktopRouter();
