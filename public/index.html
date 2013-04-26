@@ -214,7 +214,46 @@
 
   <div data-role="page" id="home">
 
-    <div data-role="panel" id="behavior_panel" data-position="right" data-display="push"></div>
+    <div data-role="panel" id="behavior_panel" data-position="right" data-display="push">
+      <h3>Add behavior</h3>
+      <div data-role="collapsible-set" data-inset="false">
+      <form action="#" id="behavior_form" method="get">
+      <div id="test" data-role="collapsible">
+        <h3>Name and type</h3>
+        <label for="object_name">Write a name</label>
+        <input name="object_name" type="text"/>
+
+        <label for="object_type">Write a type (e.g. planet, vehicle etc.)</label>
+        <input name="object_type" type="text"/>
+      </div>
+      <div data-role="collapsible">
+        <h3>Move</h3>
+        <p>The move behavior specifies in what direction and with what speed it should do so </p>
+        <label for="behavior_move_direction"></label>
+        <input name="behavior_move_direction" type="text"/>
+
+        <label for="behavior_move_speed"></label>
+        <input name="behavior_move_speed" type="text"/>
+      </div>
+      <div data-role="collapsible">
+        <h3>Rotate</h3>
+        <p>The rotate behavior rotates the object around its own axis at the specified speed</p>
+        <label for="behavior_rotate_speed"></label>
+        <input type="range" name="behavior_rotate_speed" min="0" max="20" value="0">
+      </div>
+      <div data-role="collapsible">
+        <h3>Circle</h3>
+        <p>The circle behavior lets an object circle around another specified object</p>
+        <label for="behavior_circle_target"></label>
+        <select name="behavior_circle_target">
+          <option>Choose...</option>
+        </select>
+      </div>
+      </div>
+      <input type="submit" class="add" data-role="button" data-theme="a" value="Add behavior">
+      </form>
+    </div>
+
 
     <div data-role="header">
       <h1>SimPad – Drawing to Learn</h1>

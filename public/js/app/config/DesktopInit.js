@@ -21,6 +21,7 @@ require.config({
 
       // Plugins
       // -------
+
       "backbone.localStorage": "libs/plugins/backbone.localStorage.min",
       "backbone.validateAll": "libs/plugins/Backbone.validateAll",
 
@@ -46,6 +47,10 @@ require.config({
   // Sets the configuration for your third party scripts that are not AMD compatible
   shim: {
 
+      "jquerymobile": {
+        "deps": ['jquery']
+      },
+
       // Backbone
       "backbone": {
 
@@ -53,7 +58,7 @@ require.config({
         "deps": ["underscore", "jquery"],
 
         // Exports the global window.Backbone object
-        "exports": "Backbone"
+        "exports": "Backbone",
 
       },
 
@@ -72,11 +77,28 @@ require(["jquery", "backbone", "routers/DesktopRouter", "jquerymobile", "backbon
 
   function($, Backbone, DesktopRouter) {
 
-    // Prevents all anchor click handling
-    $.mobile.linkBindingEnabled = false;
+    // Disable jQM routing and component creation events
+     // disable hash-routing
+     $.mobile.hashListeningEnabled = false;
+     // disable anchor-control
+     $.mobile.linkBindingEnabled = false;
+     // can cause calling object creation twice and back button issues are solved
+     $.mobile.ajaxEnabled = false;
+     // Otherwise after mobileinit, it tries to load a landing page
+     $.mobile.autoInitializePage = false;
+     // we want to handle caching and cleaning the DOM ourselves
+     $.mobile.page.prototype.options.domCache = false;
 
-    // Disabling this will prevent jQuery Mobile from handling hash changes
-    $.mobile.hashListeningEnabled = false;
+  // consider due to compatibility issues
+     // not supported by all browsers
+     $.mobile.pushStateEnabled = false;
+     // Solves phonegap issues with the back-button
+     $.mobile.phonegapNavigationEnabled = true;
+     //no native datepicker will conflict with the jQM component
+     $.mobile.page.prototype.options.degradeInputs.date = true;
+
+     $.mobile.defaultPageTransition = "none";
+     $.mobile.defaultDialogTransition = "none";
 
     // Instantiates a new Desktop Router instance
     new DesktopRouter();

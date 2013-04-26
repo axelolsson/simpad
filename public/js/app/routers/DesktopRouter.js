@@ -23,16 +23,14 @@ define(["jquery", "backbone", "models/Element", "views/MainView", "views/Simulat
             },
 
             index: function() {
-
-                // Instantiates a new view which will render the header text to the page
-                new MainView();
-
+              new MainView();
             },
 
             simulation: function() {
               $.mobile.changePage(new SimulationView());
-            },
-        });
+            }
+
+          });
 
         // Returns the DesktopRouter class
         return DesktopRouter;

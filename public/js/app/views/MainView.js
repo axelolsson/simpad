@@ -14,34 +14,49 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
             // View constructor
             initialize: function() {
               _.bindAll(this);
+
               var self = this;
               self.render();
 
               fabric.CustomGroup = fabric.util.createClass(fabric.Group, {
-                type: 'group',
+                type: "group",
 
                 initialize: function (options) {
-                    options || (options = {});
-                    this.callSuper('initialize', options);
-                    this.set('element_name', options.element_name || null);
-                    this.set('element_type', options.element_type || null);
+                  options || (options = {});
+                  this.callSuper("initialize", options);
+                  this.set("simpad", options.simpad || {
+                    name: "",
+                    type: "",
+                    behaviors: {
+                        move: {
+                          direction: "",
+                          speed: ""
+                        },
+                        rotate: {
+                          degrees: null,
+                        },
+                        circle: {
+                          target: null,
+                        }
+                    }
+                  });
+
                 },
 
                 toObject: function () {
-                    return fabric.util.object.extend(this.callSuper('toObject'), {
-                        element_name: this.get('element_name'),
-                        element_type: this.get('element_type')
-                    });
+                  return fabric.util.object.extend(this.callSuper('toObject'), {
+                    simpad: this.get('simpad')
+                  });
                 },
 
                 _render: function (ctx) {
-                    this.callSuper('_render', ctx);
+                  this.callSuper('_render', ctx);
                 }
 
               });
 
               fabric.CustomGroup.fromObject = function (object) {
-                  return new fabric.Group(object.options, object);
+                return new fabric.Group(object.options, object);
               };
 
               fabric.CustomGroup.async = true;
@@ -98,7 +113,11 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
             },
 
             saveCanvas: function(event) {
-              var c = canvas.toJSON(['element_name', 'element_type']);
+//              var c = canvas.toJSON();
+
+              var c = canvas.toJSON(["simpad"]);
+
+              console.log(c);
 
               try {
                 require(["Elements"], function(Elements) {
@@ -209,6 +228,7 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
                 var date = new Date();
                 var now = date.getTime();
                 if(now - this.lastTime < 500){
+                  console.log('Double clicking');
                   this.behaviorView = new BehaviorView(event.target);
                   $("#behavior_panel").panel("open");
                 }
@@ -222,15 +242,12 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
                 var currentLeft = currentGroup.getLeft();
 
                 var group = new fabric.CustomGroup(clones, {
-                    left: currentLeft,
-                    top: currentTop,
+                  left: currentLeft,
+                  top: currentTop
                 });
 
                 canvas.add(group);
-                console.log('Grouped');
-                console.log(group);
                 canvas.discardActiveGroup();
-                canvas.setActiveGroup();
                 canvas.renderAll();
               },
 
@@ -240,19 +257,20 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
                 var currentTop = currentGroup.getTop();
                 var currentLeft = currentGroup.getLeft();
 
-                var topDif = currentTop + o.getTop();
-                var leftDif = currentLeft + o.getLeft();
+                currentGroup.forEachObject(function (o) {
+                  var topDif = currentTop + o.getTop();
+                  var leftDif = currentLeft + o.getLeft();
 
-                currentGroup.getObjects().forEach(function (object) {
+                  o.getObjects().forEach(function (object) {
                     var clone = object.clone();
 
                     clone.top += topDif;
                     clone.left += leftDif;
 
-                    canvas.remove(currentGroup);
+                    canvas.remove(o);
                     canvas.remove(object);
                     clones.push(clone);
-
+                  });
                 });
                 this.addClones(clones, currentGroup);
               },
