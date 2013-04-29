@@ -74,8 +74,6 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
               fabric.Object.prototype.cornerColor = 'green';
               fabric.Object.prototype.cornersize = 30;
 
-              canvas.observe("object:selected", self.objectSelectedHandler);
-
               require(["Elements"], function(Elements) {
 
                 this.collection = new Elements();
@@ -89,6 +87,8 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
 
               });
 
+              // Custom event listeners
+              canvas.observe("object:selected", self.objectSelectedHandler);
 
             },
 
@@ -113,11 +113,8 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
             },
 
             saveCanvas: function(event) {
-//              var c = canvas.toJSON();
-
+              // Save the canvas to JSON with the custom simpad object
               var c = canvas.toJSON(["simpad"]);
-
-              console.log(c);
 
               try {
                 require(["Elements"], function(Elements) {
@@ -135,6 +132,7 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
 
             },
 
+            // Function for handling which tool is selected
             selectTool: function(event) {
                $('.tool').removeClass('active');
                $('.color').removeClass('active');
@@ -228,7 +226,6 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
                 var date = new Date();
                 var now = date.getTime();
                 if(now - this.lastTime < 500){
-                  console.log('Double clicking');
                   this.behaviorView = new BehaviorView(event.target);
                   $("#behavior_panel").panel("open");
                 }
@@ -241,9 +238,11 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
                 var currentTop = currentGroup.getTop();
                 var currentLeft = currentGroup.getLeft();
 
-                var group = new fabric.CustomGroup(clones, {
-                  left: currentLeft,
-                  top: currentTop
+                var group = new fabric.CustomGroup(clones, {});
+
+                group.set({
+                  "left": currentLeft,
+                  "top": currentTop
                 });
 
                 canvas.add(group);
@@ -288,7 +287,40 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
               },
 
               groupMixed: function(currentGroup) {
-                console.log(currentGroup);
+                var clones = [];
+
+                var currentTop = currentGroup.getTop();
+                var currentLeft = currentGroup.getLeft();
+
+                currentGroup.forEachObject(function (obj) {
+                  var topDif = currentTop + obj.getTop();
+                  var leftDif = currentLeft + obj.getLeft();
+
+                  if(obj.type === "group") {
+
+                    obj.forEachObject(function (o) {
+                      var clone = o.clone();
+
+                      clone.top += topDif;
+                      clone.left += leftDif;
+
+                      canvas.remove(o);
+                      canvas.remove(obj);
+                      clones.push(clone);
+                    });
+
+                  } else {
+                    var clone = obj.clone();
+
+                    clone.top = topDif;
+                    clone.left = leftDif;
+
+                    canvas.remove(obj);
+                    clones.push(clone);
+                  }
+                });
+
+                this.addClones(clones, currentGroup);
               },
 
               handleGroup: function() {

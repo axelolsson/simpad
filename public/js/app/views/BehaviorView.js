@@ -12,7 +12,6 @@ define(["jquery", "backbone", "fabric", "models/Element",],
 
             // View constructor
             initialize: function(options) {
-
               // Calls the view's render method
               this.render();
               this.template = _.template($('#behavior_panel').html(), {});
@@ -54,8 +53,8 @@ define(["jquery", "backbone", "fabric", "models/Element",],
 
             // View Event Handlers
             events: {
-              "tap a": "expand",
               "tap .add": "addBehavior",
+              "panelbeforeclose": "addBehavior"
             },
 
             // Renders the view's template to the UI
@@ -66,9 +65,6 @@ define(["jquery", "backbone", "fabric", "models/Element",],
               // Dynamically updates the UI with the view's template
               this.$el.html(this.template);
 
-            },
-
-            expand: function(e) {
             },
 
             addBehavior: function() {
@@ -118,6 +114,14 @@ define(["jquery", "backbone", "fabric", "models/Element",],
                 }
               }, this);
 
+              return this.options;
+
+              this.saveBehaviors();
+
+            },
+
+            saveBehavior: function() {
+              console.log("saving");
               this.options.set({"simpad": {
                 name: this.options.simpad.name,
                 type: this.options.simpad.type,
@@ -136,10 +140,10 @@ define(["jquery", "backbone", "fabric", "models/Element",],
                 }
               });
 
+              console.log(this.options);
               return this.options;
 
             }
-
         });
 
         // Returns the View class
