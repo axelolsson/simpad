@@ -1,11 +1,15 @@
 // Elements.js
 // -------------
-define("Elements", ["jquery","backbone","models/Element","backbone.localStorage"],
+define(["jquery","backbone","models/Element","backbone.localStorage"],
 
   function($, Backbone, Element, localStorage) {
 
     // Creates a new Backbone Collection class object
     var Elements = Backbone.Collection.extend({
+
+      // Tells the Backbone Collection that all of it's models will be of type Model (listed up top as a dependency)
+      model: Element,
+      localStorage: new Backbone.LocalStorage("simpad-ls"),
 
       // Model Constructor
       initialize: function() {
@@ -16,11 +20,6 @@ define("Elements", ["jquery","backbone","models/Element","backbone.localStorage"
         });
 
       },
-
-      // Tells the Backbone Collection that all of it's models will be of type Model (listed up top as a dependency)
-      model: Element,
-
-      localStorage: new Backbone.LocalStorage("simpad-ls") // Unique name within your app.
 
     });
 

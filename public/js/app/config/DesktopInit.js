@@ -13,22 +13,35 @@ require.config({
       // --------------
       "jquery": "libs/jquery",
 
-      "jquerymobile": "libs/jquery.mobile",
+//      "jquerymobile": "libs/jquery.mobile",
 
       "underscore": "libs/lodash",
 
       "backbone": "libs/backbone",
 
+      "hammer": "libs/hammer",
+
       // Plugins
       // -------
+      "backbone.touch": "libs/plugins/backbone.touch",
 
       "backbone.localStorage": "libs/plugins/backbone.localStorage.min",
+
       "backbone.validateAll": "libs/plugins/Backbone.validateAll",
 
       "text": "libs/plugins/text",
 
-//      "fabric": "libs/plugins/fabricjs-1.1.6",
-      "fabric": "libs/plugins/fabricjs-0.9.15.min",
+      "fabric": "libs/plugins/fabricjs-1.1.12",
+
+      "TweenMax": "libs/plugins/TweenMax-1.9.5.min",
+
+      "TimelineMax": "libs/plugins/TimelineMax-1.9.5.min",
+
+      "jquery.hammer": "libs/plugins/jquery.hammer",
+
+      "hammer.fakemultitouch": "libs/plugins/hammer.fakemultitouch",
+
+      "hammer.showtouches": "libs/plugins/hammer.showtouches",
 
       // Application Folders
       // -------------------
@@ -47,10 +60,6 @@ require.config({
   // Sets the configuration for your third party scripts that are not AMD compatible
   shim: {
 
-      "jquerymobile": {
-        "deps": ['jquery']
-      },
-
       // Backbone
       "backbone": {
 
@@ -66,42 +75,69 @@ require.config({
       "backbone.localStorage": ["backbone"],
 
       // Backbone.validateAll plugin that depends on Backbone
-      "backbone.validateAll": ["backbone"]
+      "backbone.validateAll": ["backbone"],
+
+//      "jquerymobile": ["jquery"],
+
+      "jquery.hammer": ["jquery", "hammer"],
+
+      "hammer.fakemultitouch": ["hammer"],
+
+      "hammer.showtouches": ["hammer"],
+
+      "TimelineMax": ["TweenMax"]
 
   }
 
 });
 
 // Includes Desktop Specific JavaScript files here (or inside of your Desktop router)
-require(["jquery", "backbone", "routers/DesktopRouter", "jquerymobile", "backbone.localStorage", "backbone.validateAll"],
+require(["jquery", "backbone", "routers/DesktopRouter", "backbone.localStorage", "backbone.validateAll", "hammer", "jquery.hammer", "hammer.fakemultitouch", "hammer.showtouches"],
 
   function($, Backbone, DesktopRouter) {
 
-    // Disable jQM routing and component creation events
-     // disable hash-routing
-     $.mobile.hashListeningEnabled = false;
-     // disable anchor-control
-     $.mobile.linkBindingEnabled = false;
-     // can cause calling object creation twice and back button issues are solved
-     $.mobile.ajaxEnabled = false;
-     // Otherwise after mobileinit, it tries to load a landing page
-     $.mobile.autoInitializePage = false;
-     // we want to handle caching and cleaning the DOM ourselves
-     $.mobile.page.prototype.options.domCache = false;
+    Backbone.View.prototype.close = function () {
+      console.log('Unbinding events for ' + this.cid);
+      this.$el.empty();
+      this.unbind();
+      this.undelegateEvents();
 
-  // consider due to compatibility issues
-     // not supported by all browsers
-     $.mobile.pushStateEnabled = false;
-     // Solves phonegap issues with the back-button
-     $.mobile.phonegapNavigationEnabled = true;
-     //no native datepicker will conflict with the jQM component
-     $.mobile.page.prototype.options.degradeInputs.date = true;
+      if (this.onClose) {
+        this.onClose();
+      }
+    };
 
-     $.mobile.defaultPageTransition = "none";
-     $.mobile.defaultDialogTransition = "none";
+    var AppView = Backbone.View.extend({
+      el: $(".content"),
+
+      showView: function(view){
+        var closingView = this.view;
+
+        this.view = view;
+        this.view.render();
+        $(this.view.el).hide();
+        this.$el.append(this.view.el);
+
+        this.openView(this.view);
+        this.closeView(closingView);
+      },
+
+      openView: function(view){
+        $(view.el).fadeIn("fast");
+        view.delegateEvents();
+      },
+
+      closeView: function(view){
+        if (view){
+          view.unbind();
+          view.undelegateEvents();
+
+        }
+      }
+    });
 
     // Instantiates a new Desktop Router instance
-    new DesktopRouter();
+    new DesktopRouter({appView: new AppView()});
 
   }
 

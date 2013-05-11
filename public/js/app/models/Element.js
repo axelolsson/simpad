@@ -21,9 +21,6 @@ define(["jquery", "backbone", "fabric"],
               });
 
             },
-
-            // Default values for all of the Model attributes
-
         });
 
         // Returns the Model class

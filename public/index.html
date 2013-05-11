@@ -3,7 +3,7 @@
 <!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ui-mobile-rendering" lang="en"> <![endif]-->
 <!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ui-mobile-rendering" lang="en"> <![endif]-->
 <!--[if IE 8]>    <html class="no-js lt-ie9 ui-mobile-rendering" lang="en"> <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js ui-mobile-rendering" lang="en"> <!--<![endif]-->
+<!--[if gt IE 8]><!--> <html lang="en"> <!--<![endif]-->
 <head>
   <meta charset="utf-8">
 
@@ -19,7 +19,17 @@
   <meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, width=device-width">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="">
+  <meta name="apple-mobile-web-app-title" content="SimPad – Drawing to learn">
+
+  <script>
+  function hideAddressBar(){
+    if(document.documentElement.scrollHeight<window.outerHeight/window.devicePixelRatio)
+      document.documentElement.style.height=(window.outerHeight/window.devicePixelRatio)+'px';
+      setTimeout(window.scrollTo(1,1),0);
+    }
+    window.addEventListener("load",function(){hideAddressBar();});
+    window.addEventListener("orientationchange",function(){hideAddressBar();});
+  </script>
 
   <link rel="apple-touch-icon-precomposed" sizes="144x144" href="img/touch/apple-touch-icon-144x144-precomposed.png">
   <link rel="apple-touch-icon-precomposed" sizes="114x114" href="img/touch/apple-touch-icon-114x114-precomposed.png">
@@ -54,17 +64,17 @@
             // Mobile/Tablet CSS and JavaScript files to load
             config = {
 
-              // CSS files that are loaded when in development mode
-              "dev-css": ["css/libs/jquery.mobile.css"],
+              // Loaded when not in production mode
+              "dev-css": ["css/commonstyles.css"],
 
-              // CSS files that are loaded when in production mode
-              "prod-css": ["css/libs/jquery.mobile.min.css"],
+              // Loaded when in production mode
+              "prod-css": ["css/commonstyles.min.css"],
 
-              // JavaScript files that are loaded when in development mode
-              "dev-js": [{ "data-main": "js/app/config/MobileInit.js", "src": "js/libs/require.js" }],
+              // Loaded when not in production mode
+              "dev-js": [{ "data-main": "js/app/config/DesktopInit.js", "src": "js/libs/require.js" }],
 
-              // JavaScript files that are loaded when in production mode
-              "prod-js": ["js/app/config/MobileInit.min.js"]
+              // Loaded when in production mode
+              "prod-js": ["js/app/config/DesktopInit.min.js"]
 
             };
 
@@ -77,12 +87,10 @@
             config = {
 
               // Loaded when not in production mode
-//              "dev-css": ["css/libs/bootstrap.css"],
-              "dev-css": ["css/libs/jquery.mobile.css"],
+              "dev-css": ["css/commonstyles.css"],
 
               // Loaded when in production mode
-//              "prod-css": ["css/libs/bootstrap.min.css"],
-              "prod-css": ["css/libs/jquery.mobile.min.css"],
+              "prod-css": ["css/commonstyles.min.css"],
 
               // Loaded when not in production mode
               "dev-js": [{ "data-main": "js/app/config/DesktopInit.js", "src": "js/libs/require.js" }],
@@ -208,62 +216,17 @@
       })(navigator.userAgent || navigator.vendor || window.opera, window, window.document);
 
   </script>
-
 </head>
 <body>
 
-  <div data-role="page" id="home">
-
-    <div data-role="panel" id="behavior_panel" data-position="right" data-display="push">
-      <h3>Add behavior</h3>
-      <div data-role="collapsible-set" data-inset="false">
-      <form action="#" id="behavior_form" method="get">
-      <div id="test" data-role="collapsible">
-        <h3>Name and type</h3>
-        <label for="object_name">Write a name</label>
-        <input name="object_name" type="text"/>
-
-        <label for="object_type">Write a type (e.g. planet, vehicle etc.)</label>
-        <input name="object_type" type="text"/>
-      </div>
-      <div data-role="collapsible">
-        <h3>Move</h3>
-        <p>The move behavior specifies in what direction and with what speed it should do so </p>
-        <label for="behavior_move_direction"></label>
-        <input name="behavior_move_direction" type="text"/>
-
-        <label for="behavior_move_speed"></label>
-        <input name="behavior_move_speed" type="text"/>
-      </div>
-      <div data-role="collapsible">
-        <h3>Rotate</h3>
-        <p>The rotate behavior rotates the object around its own axis at the specified speed</p>
-        <label for="behavior_rotate_speed"></label>
-        <input type="range" name="behavior_rotate_speed" min="0" max="20" value="0">
-      </div>
-      <div data-role="collapsible">
-        <h3>Circle</h3>
-        <p>The circle behavior lets an object circle around another specified object</p>
-        <label for="behavior_circle_target"></label>
-        <select name="behavior_circle_target">
-          <option>Choose...</option>
-        </select>
-      </div>
-      </div>
-      <input type="submit" class="add" data-role="button" data-theme="a" value="Add behavior">
-      </form>
+  <div class="container">
+    <div class="head">
     </div>
 
+    <div class="content"></div>
 
-    <div data-role="header">
-      <h1>SimPad – Drawing to Learn</h1>
-      <a class="ui-btn-right" data-inline="true" data-mini="true" data-role="button" href="#simulate">Simulate</a>
+    <div class="behavior">
     </div>
-
-    <div data-role="content">
-      <div class="canvas"></div>
-    </div>
-
   </div>
 
 </body>

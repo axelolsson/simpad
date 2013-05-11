@@ -1,98 +1,40 @@
 // View.js
 // -------
-define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element", "views/BehaviorView", "text!templates/drawing.html"],
+define(["jquery", "backbone", "fabric", "hammer", "models/Element", "collections/Elements", "views/HeaderView", "views/BehaviorView", "text!templates/drawing.html"],
 
-    function($, Backbone, Fabric, Elements, Element, BehaviorView, template){
+    function($, Backbone, Fabric, Hammer, Element, Elements, HeaderView, BehaviorView, template){
 
         var View = Backbone.View.extend({
 
             // The DOM Element associated with this view
-            el: ".canvas",
+            el: ".content",
             canvas: null,
             lastTime: 0,
 
             // View constructor
-            initialize: function() {
+            initialize: function(options) {
               _.bindAll(this);
 
-              var self = this;
-              self.render();
+              this.collection = options.collection;
+              this.model = options.model;
 
-              fabric.CustomGroup = fabric.util.createClass(fabric.Group, {
-                type: "group",
-
-                initialize: function (options) {
-                  options || (options = {});
-                  this.callSuper("initialize", options);
-                  this.set("simpad", options.simpad || {
-                    name: "",
-                    type: "",
-                    behaviors: {
-                        move: {
-                          direction: "",
-                          speed: ""
-                        },
-                        rotate: {
-                          degrees: null,
-                        },
-                        circle: {
-                          target: null,
-                        }
-                    }
-                  });
-
+              this.collection.fetch({
+                success : function(collection) {
+                  this.collection = collection;
                 },
-
-                toObject: function () {
-                  return fabric.util.object.extend(this.callSuper('toObject'), {
-                    simpad: this.get('simpad')
-                  });
-                },
-
-                _render: function (ctx) {
-                  this.callSuper('_render', ctx);
+                error: function(e) {
+                  console.log("Error when initializing collection: " + e);
                 }
-
               });
 
-              fabric.CustomGroup.fromObject = function (object) {
-                return new fabric.Group(object.options, object);
-              };
-
-              fabric.CustomGroup.async = true;
-
-              canvas = new fabric.Canvas('drawingCanvas');
-
-              canvas.setHeight(702);
-              canvas.setWidth(824);
-
-              canvas.freeDrawingLineWidth = 3;
-              canvas.selectionColor = 'rgba(0,255,0,0.3)';
-              canvas.selectionBorderColor = 'green';
-
-              fabric.Object.prototype.borderColor = 'green';
-              fabric.Object.prototype.cornerColor = 'green';
-              fabric.Object.prototype.cornersize = 30;
-
-              require(["Elements"], function(Elements) {
-
-                this.collection = new Elements();
-
-                this.collection.fetch().done(function(collection) {
-
-                  var c = JSON.stringify(collection.pop());
-                  canvas.loadFromJSON(c);
-
-                });
-
+              this.events = _.extend({}, this.defaultEvents, this.events||{});
+              this.render = _.wrap(this.render, function(render) {
+                render();
+                this.afterRender();
               });
-
-              // Custom event listeners
-              canvas.observe("object:selected", self.objectSelectedHandler);
-
             },
 
-            // View Event Handlers
+            // Backbone view Event Handlers
             events: {
               "tap .tool":  "selectTool",
               "tap .color": "selectColor",
@@ -101,7 +43,6 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
 
             // Renders the view's template to the UI
             render: function() {
-
               // Setting the view's template property using the Underscore template method
               this.template = _.template(template, {});
 
@@ -109,26 +50,64 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
               this.$el.html(this.template);
 
               return this.el;
+            },
+
+            afterRender: function() {
+              var hammer = $('body').hammer({
+                swipe_max_touches: 0
+              });
+
+              Hammer.plugins.fakeMultitouch();
+              Hammer.plugins.showTouches();
+
+              /* EventProxy - An eventdispatcher that allows views to trigger custom events */
+              var eventProxy = {};
+              _.extend(eventProxy, Backbone.Events);
+              this.eventProxy = eventProxy;
+              this.eventProxy.on('canvas:save', this.saveCanvas);
+
+              /* Fabric.js canvas setup */
+              canvas = new fabric.Canvas('drawingCanvas');
+
+              canvas.setHeight(702);
+              canvas.setWidth(824);
+
+              canvas.freeDrawingBrush.width = 3;
+              canvas.selectionColor = 'rgba(22, 160, 133, .3)';
+              canvas.selectionBorderColor = 'rgba(22, 160, 133, 1)';
+
+              fabric.Object.prototype.borderColor = 'rgba(22, 160, 133, 1)';
+              fabric.Object.prototype.cornerColor = 'rgba(22, 160, 133, 1)';
+              fabric.Object.prototype.cornerSize = 30;
+
+              if(this.collection.at(0) != null) {
+                var c = this.collection.at(0).get("canvas");
+                canvas.loadFromJSON(JSON.stringify(c));
+              }
+
+              canvas.isDrawingMode = !canvas.isDrawingMode;
+              $("#draw_tool").toggleClass('active');
+              $(".black").toggleClass('active');
+
+              // Custom event listener for selection of canvas-object
+              canvas.on("object:selected", this.objectSelectedHandler);
+              canvas.on("selection:cleared", this.objectDeselectedHandler);
+              canvas.on("path:created", this.saveState);
 
             },
 
             saveCanvas: function(event) {
-              // Save the canvas to JSON with the custom simpad object
-              var c = canvas.toJSON(["simpad"]);
 
-              try {
-                require(["Elements"], function(Elements) {
-                  this.collection = new Elements();
-                  this.model = new Element(c);
-
-                  this.collection.create(this.model);
-                  this.model.save();
-                });
-              } catch(e) {
-                alert('Error occured ' + e);
-              } finally {
-                alert('All done');
+              var c = canvas.toObject();
+              console.log(c);
+              if(_.size(this.collection) === 0) {
+                this.collection.create({canvas: c});
+              } else {
+                var model = this.collection.at(0);
+                model.set({canvas: c});
+                model.save();
               }
+
 
             },
 
@@ -142,21 +121,32 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
 
                switch(currentToolId) {
                  case "draw_tool":
-                   canvas.isDrawingMode = true;
-                   $(currentTool).addClass('active');
+                   canvas.isDrawingMode = !canvas.isDrawingMode;
+                   if (canvas.isDrawingMode) {
+                     $(currentTool).addClass('active');
+                     $(".black").addClass('active');
+                   }
+                   else {
+                     canvas.isDrawingMode = false;
+                     $(currentTool).removeClass('active');
+                     $(".black").removeClass('active');
+                   }
                    break;
                  case "move_tool":
                    canvas.isDrawingMode = false;
-                   $(currentTool).addClass('active');
+                   $(currentTool).toggleClass('active');
                    break;
                  case "clear_tool":
                    $(currentTool).addClass('active');
-                   if (confirm('Are you sure?')) {
+                   var clearIt = window.confirm("Are you sure?");
+                   if(clearIt) {
                      canvas.clear();
+                     window.localStorage.clear();
+                     $(currentTool).removeClass('active');
                    }
-                   $(currentTool).removeClass('active');
                    break;
                  case "group_tool":
+                   $('.group_tool').toggleClass('active');
                    this.handleGroup();
                    break;
                  case "ungroup_tool":
@@ -181,28 +171,28 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
 
                 switch(currentColorName) {
                   case "red":
-                    canvas.freeDrawingColor = '#FF0000';
-                    $(currentColor).addClass('active');
+                    canvas.freeDrawingBrush.color = '#FF0000';
+                    $(currentColor).toggleClass('active');
                     break;
                   case "green":
-                    canvas.freeDrawingColor = '#008000';
-                    $(currentColor).addClass('active');
+                    canvas.freeDrawingBrush.color = '#008000';
+                    $(currentColor).toggleClass('active');
                     break;
                   case "blue":
-                    canvas.freeDrawingColor = '#0000FF';
-                    $(currentColor).addClass('active');
+                    canvas.freeDrawingBrush.color = '#0000FF';
+                    $(currentColor).toggleClass('active');
                     break;
                   case "yellow":
-                    canvas.freeDrawingColor = '#FFFF00';
-                    $(currentColor).addClass('active');
+                    canvas.freeDrawingBrush.color = '#FFFF00';
+                    $(currentColor).toggleClass('active');
                     break;
                   case "black":
-                    canvas.freeDrawingColor = '#000000';
-                    $(currentColor).addClass('active');
+                    canvas.freeDrawingBrush.color = '#000000';
+                    $(currentColor).toggleClass('active');
                     break;
                   case "brown":
-                    canvas.freeDrawingColor = '#A52A2A';
-                    $(currentColor).addClass('active');
+                    canvas.freeDrawingBrush.color = '#A52A2A';
+                    $(currentColor).toggleClass('active');
                     break;
                   default:
                     break;
@@ -211,26 +201,56 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
               },
 
               saveState: function() {
-/*
-                objects = canvas._objects;
+
+                objects = canvas.getObjects();
                 currentState = [];
 
                 for (var i = 0; i < objects.length; i++) {
                   currentState.push(objects[i]);
                 };
-*/
+
+                console.log(currentState);
+
               },
 
               objectSelectedHandler: function(event) {
 
-                var date = new Date();
-                var now = date.getTime();
-                if(now - this.lastTime < 500){
-                  this.behaviorView = new BehaviorView(event.target);
-                  $("#behavior_panel").panel("open");
-                }
-                this.lastTime = now;
+                if(event.target.type === "group") {
+                  this.behaviorView = new BehaviorView({objects: event.target, eventProxy: this.eventProxy});
 
+                  objects = canvas.getObjects();
+                  $('#rangevalue').val($('input[name="degrees"]').val());
+                  if(objects) {
+                    $('#dropdown_circle').empty();
+
+                    output = [];
+                    inactiveObjects = [];
+
+                    while (inactiveObjects.length > 0) {
+                        inactiveObjects.pop();
+                        output.pop();
+                    }
+
+                    _.each(objects, function(object) {
+                      if(object.active === false) {
+                        inactiveObjects.push(object);
+                      }
+                    }, this);
+
+                    if(inactiveObjects.length !=0) {
+                      for(var i = 0, len = inactiveObjects.length; i < len; i++) {
+                        output.push('<option class="dropdown_circle_target" value="' + inactiveObjects[i].simpad.name + '">' + inactiveObjects[i].simpad.name + '</option>');
+                      }
+
+                      $('#dropdown_circle').append(output.join(''));
+                      $('#dropdown_circle').prepend('<option class="dropdown_circle_target" value="">Choose...</option>');
+                    }
+                  }
+                }
+              },
+
+              objectDeselectedHandler: function(event) {
+                this.behaviorView.close();
               },
 
               addClones: function(clones, currentGroup) {
@@ -242,7 +262,7 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
 
                 group.set({
                   "left": currentLeft,
-                  "top": currentTop
+                  "top": currentTop,
                 });
 
                 canvas.add(group);
@@ -255,6 +275,7 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
 
                 var currentTop = currentGroup.getTop();
                 var currentLeft = currentGroup.getLeft();
+                var currentAngle = currentGroup.getAngle();
 
                 currentGroup.forEachObject(function (o) {
                   var topDif = currentTop + o.getTop();
@@ -265,6 +286,7 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
 
                     clone.top += topDif;
                     clone.left += leftDif;
+                    clone.angle = 0;
 
                     canvas.remove(o);
                     canvas.remove(object);
@@ -370,9 +392,27 @@ define(["jquery", "backbone", "fabric", "collections/Elements", "models/Element"
                 }
               },
 
-              handleUndo: function() {},
+              handleUndo: function() {
+                removal = [];
 
-              handleRedo: function() {},
+                for (var i = 0; i < canvas.getObjects().length; i++) {
+                  removal.push(objects[i]);
+                };
+
+                for (var i = 0; i <= removal.length; i++) {
+                  canvas.remove($(removal).last()[i]);
+                }
+
+                removal.pop();
+              },
+
+              handleRedo: function() {
+                try {
+                  canvas.add(currentState.shift());
+                } catch (e) {
+                  alert("Nothing left to redo!");
+                }
+              }
 
         });
 

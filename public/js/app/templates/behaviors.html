@@ -1,0 +1,42 @@
+<div class="behaviorbar">
+  <h2>Add behavior</h2>
+<form id="behavior_form" method="get">
+  <div>
+    <h3>Name and type</h3>
+    <label for="name">Write a name
+      <input name="name" type="text" placeholder="Write the name here" value=""/>
+    </label>
+    <label for="type">Write a type (e.g. planet, vehicle)
+      <input name="type" type="text" placeholder="Write the type here" value=""/>
+    </label>
+  </div>
+<!--
+  <div>
+    <h3>Move</h3>
+    <p>The move behavior specifies in what direction and with what speed it should do so </p>
+    <label for="direction"></label>
+    <input name="direction" type="text"/>
+    <label for="speed"></label>
+    <input name="speed" type="text"/>
+  </div>
+-->
+  <div>
+    <h3>Rotate</h3>
+    <p>The rotate behavior rotates the object around its own axis at the specified speed</p>
+    <label for="degrees"></label>
+    <output id="rangevalue"></output>
+    <input type="range" name="degrees" min="0" max="200" step="10" value="0" onchange="rangevalue.value=value">
+  </div>
+  <div>
+    <h3>Circle</h3>
+    <p>The circle behavior lets an object circle around another specified object</p>
+    <label for="target"></label>
+    <select name="target" id="dropdown_circle">
+      <option class="dropdown_circle_target" value="">Choose...</option>
+    </select>
+    <span class="select-icon">&#9660;</span>
+  </div>
+  <a href="#" class="ui-btn add">Add behavior</a>
+  </form>
+</div>
+</div>

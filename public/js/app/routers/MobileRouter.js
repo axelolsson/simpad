@@ -6,7 +6,19 @@ define(["jquery", "backbone", "models/Element", "views/MainView", "views/Simulat
 
         var MobileRouter = Backbone.Router.extend({
 
-            initialize: function() {
+             initialize: function() {
+              this.collection = new Elements();
+              this.model = new Element();
+
+              this.collection.fetch({
+                success : function(collection) {
+                  this.collection = collection;
+                },
+                error: function(e) {
+                  console.log("Error when initializing collection: " + e);
+                }
+              });
+
 
               // Tells Backbone to start watching for hashchange events
               Backbone.history.start();
@@ -16,22 +28,19 @@ define(["jquery", "backbone", "models/Element", "views/MainView", "views/Simulat
             // All of your Backbone Routes (add more)
             routes: {
 
-                // When there is no hash bang on the url, the home method is called
+                // When there is no hash on the url, the home method is called
                 "": "index",
                 "simulate": "simulation",
 
             },
 
             index: function() {
-
-                // Instantiates a new view which will render the header text to the page
-                new MainView();
-
+              new MainView({collection: this.collection});
             },
 
             simulation: function() {
-              $.mobile.changePage(new SimulationView());
-            },
+              new SimulationView({collection: this.collection});
+            }
 
         });
 
