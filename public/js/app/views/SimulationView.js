@@ -16,7 +16,6 @@ define(["jquery", "backbone", "fabric", "TweenMax", "models/Element", "collectio
 
               this.collection = options.collection;
               this.model = options.model;
-              this.tl = new TimelineMax({repeat: -1});
 
               this.collection.fetch({
                 success : function(collection) {
@@ -38,6 +37,11 @@ define(["jquery", "backbone", "fabric", "TweenMax", "models/Element", "collectio
               "click .play":  "playAnimation",
               "click .pause": "pauseAnimation",
               "click .reset": "resetAnimation",
+/*
+              "click .zoomin": "zoomInCanvas",
+              "click .zoomout": "zoomOutCanvas",
+              "click .zoomreset": "zoomResetCanvas",
+*/
             },
 
             // Renders the view's template to the UI
@@ -54,24 +58,35 @@ define(["jquery", "backbone", "fabric", "TweenMax", "models/Element", "collectio
             },
 
             afterRender: function() {
+              this.tl = new TimelineMax();
 
               canvas = new fabric.StaticCanvas('simulationCanvas');
               canvas.setHeight(623);
               canvas.setWidth(1024);
-              canvas.centerTransform = true;
 
               /* Backbone initial collection fetch from localStorage */
               if(this.collection.at(0) != null) {
                 var c = this.collection.at(0).get("canvas");
                 canvas.loadFromJSON(JSON.stringify(c));
               }
+
+              this.objects = canvas.getObjects();
+              this.currentBehaviors = [];
+              this.currentTargets = [];
+
+              _.each(this.objects, function (obj){
+                this.currentBehaviors.push(obj.simpad.behaviors);
+              }, this);
+
+              _.each(this.objects, function (obj){
+                this.currentTargets.push(obj.simpad.name);
+              }, this);
+
+              console.log(this.currentBehaviors);
+              console.log(this.currentTargets);
             },
 
             animateObject: function() {
-              var objects = canvas.getObjects();
-
-              _.each(objects, function (obj) {
-                var currentBehaviors = obj.simpad.behaviors;
 /*
                 if(currentBehaviors["move"]) {
                   var newVar = obj.getLeft() + 100;
@@ -82,27 +97,49 @@ define(["jquery", "backbone", "fabric", "TweenMax", "models/Element", "collectio
                     moveTween = TweenMax.to(obj, 1.5, {left: newVar, ease:Linear.easeNone, onComplete:doMove});
                   }
                 }
+
+
 */
-                if (currentBehaviors["rotate"].degrees != 0) {
-                  var newAngle = obj.getAngle() + currentBehaviors["rotate"].degrees;
+                _.each(this.objects, function(obj, i) {
 
-                  doRotate();
+                  if (this.currentBehaviors[i]["rotate"].degrees != 0) {
 
-                  function doRotate() {
-                    rotateTween = TweenMax.to(obj, 2, {angle: newAngle, onComplete:doRotate});
-                  }
-                }
+                    var newAngle = obj.getAngle() + this.currentBehaviors[i]["rotate"].degrees;
 
-                if(currentBehaviors["circle"].target != "") {
-                  _.each(objects, function (o) {
-                    if(o.simpad.behaviors.circle.target != currentBehaviors["circle"].target) {
+                    doRotate();
+                    function doRotate() {
+                      rotateTween = TweenMax.to(obj, 2, {angle: newAngle, onComplete:doRotate});
                     }
-                  });
-                }
 
+                  }
+
+                  if(this.currentBehaviors[i]["circle"]["target"] != "") {
+                    angle = fabric.util.degreesToRadians(obj.getAngle() + 2);
+
+
+                    _.find(this.objects, function(obj) {
+                      var res = obj["simpad"]["name"] === this.currentBehaviors[i]["circle"]["target"];
+                      if(res === true) {
+                        cx = obj.getLeft();
+                        cy = obj.getTop();
+                        radius = obj.getWidth() + obj.getWidth() * .7;
+                      }
+                    }, this);
+
+                    doCircle();
+
+                    function doCircle() {
+                      var x = cx + radius * Math.cos(angle);
+                      var y = cy + radius * Math.sin(angle);
+  //                    var x = (cx + radius) * Math.cos(angle) + (cy + radius) * Math.sin(angle);
+  //                    var y = (cx + radius) * Math.cos(angle) - (cy + radius) * Math.sin(angle);
+
+                      circleTween = TweenMax.to(obj, 2, {left: x, top: y, onComplete: doCircle});
+
+                    }
+                  }
 
               }, this);
-
 
               canvas.renderAll();
 
@@ -112,22 +149,112 @@ define(["jquery", "backbone", "fabric", "TweenMax", "models/Element", "collectio
               e.preventDefault();
               console.log("Playing");
               TweenMax.ticker.addEventListener("tick", this.animateObject);
-//              this.tl.play();
             },
 
             pauseAnimation: function(e) {
               e.preventDefault();
               console.log("Paused");
               TweenMax.ticker.removeEventListener("tick", this.animateObject);
-//              this.tl.pause();
             },
 
             resetAnimation: function(e) {
               e.preventDefault();
               console.log("Resetted");
-              this.tl.restart();
-            }
+            },
+/* WIP – Actually scales objects = bad
+            zoomInCanvas: function(e) {
+              e.preventDefault();
+              console.log("Zoom In");
 
+              if(this.canvasScale < 2.9)
+               {
+                  canvasScale = this.canvasScale * this.SCALE_FACTOR;
+
+                  var objects = canvas.getObjects();
+
+                  for (var i in objects) {
+                      var scaleX = objects[i].scaleX;
+                      var scaleY = objects[i].scaleY;
+                      var left = objects[i].left;
+                      var top = objects[i].top;
+
+                      var tempScaleX = scaleX * this.SCALE_FACTOR;
+                      var tempScaleY = scaleY * this.SCALE_FACTOR;
+                      var tempLeft = left * this.SCALE_FACTOR;
+                      var tempTop = top * this.SCALE_FACTOR;
+
+                      objects[i].scaleX = tempScaleX;
+                      objects[i].scaleY = tempScaleY;
+                      objects[i].left = tempLeft;
+                      objects[i].top = tempTop;
+
+                      objects[i].setCoords();
+                  }
+
+                  canvas.renderAll();
+              }
+            },
+
+            zoomOutCanvas: function(e) {
+              e.preventDefault();
+              console.log("Zoom Out");
+              if(this.canvasScale > 0.61)
+              {
+
+                  canvasScale = this.canvasScale / this.SCALE_FACTOR;
+
+                  var objects = canvas.getObjects();
+                  for (var i in objects) {
+                      var scaleX = objects[i].scaleX;
+                      var scaleY = objects[i].scaleY;
+                      var left = objects[i].left;
+                      var top = objects[i].top;
+
+                      var tempScaleX = scaleX * (1 / this.SCALE_FACTOR);
+                      var tempScaleY = scaleY * (1 / this.SCALE_FACTOR);
+                      var tempLeft = left * (1 / this.SCALE_FACTOR);
+                      var tempTop = top * (1 / this.SCALE_FACTOR);
+
+                      objects[i].scaleX = tempScaleX;
+                      objects[i].scaleY = tempScaleY;
+                      objects[i].left = tempLeft;
+                      objects[i].top = tempTop;
+
+                      objects[i].setCoords();
+                  }
+
+                  canvas.renderAll();
+              }
+            },
+
+            zoomResetCanvas: function(e) {
+              e.preventDefault();
+              console.log("Zoom Reset");
+              var objects = canvas.getObjects();
+                for (var i in objects) {
+                    var scaleX = objects[i].scaleX;
+                    var scaleY = objects[i].scaleY;
+                    var left = objects[i].left;
+                    var top = objects[i].top;
+
+                    var tempScaleX = scaleX * (1 / canvasScale);
+                    var tempScaleY = scaleY * (1 / canvasScale);
+                    var tempLeft = left * (1 / canvasScale);
+                    var tempTop = top * (1 / canvasScale);
+
+                    objects[i].scaleX = tempScaleX;
+                    objects[i].scaleY = tempScaleY;
+                    objects[i].left = tempLeft;
+                    objects[i].top = tempTop;
+
+                    objects[i].setCoords();
+                }
+
+                canvas.renderAll();
+
+                canvasScale = 1;
+            }
+*/
         });
 
         // Returns the View class

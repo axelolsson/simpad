@@ -131,7 +131,6 @@ require(["jquery", "backbone", "routers/DesktopRouter", "backbone.localStorage",
         if (view){
           view.unbind();
           view.undelegateEvents();
-
         }
       }
     });

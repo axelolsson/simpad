@@ -15,34 +15,35 @@ define(["jquery", "backbone", "fabric", "models/Element", "text!templates/behavi
               // Calls the view's render method
               this.render();
 
-//              this.options = options.objects;
+              this.options = options.objects;
               this.eventProxy = options.eventProxy;
 
-              this.objects = canvas.getObjects();
-              this.activeObj = canvas.getActiveObject();
-
               this.inputs = $(this.el).find('input');
-              var select = $('#dropdown_circle')[0];
-              this.inputs.push(select);
+              this.select = $('#dropdown_circle')[0];
+              this.inputs.push(this.select);
               inputs = this.inputs;
 
               _.each(inputs, function(v) {
-                if(this.activeObj && this.activeObj.simpad) {
+                if(this.options.active === true && this.options.simpad) {
                   switch($(v).attr("name")) {
                     case "name":
-                      $(v).val(this.activeObj.simpad.name);
+                      $(v).val(this.options.simpad.name);
                       break;
                     case "type":
-                      $(v).val(this.activeObj.simpad.type);
+                      $(v).val(this.options.simpad.type);
                       break;
                     case "direction":
-                      $(v).val(this.activeObj.simpad.behaviors.move.direction);
+                      $(v).val(this.options.simpad.behaviors.move.direction);
                       break;
                     case "speed":
-                      $(v).val(this.activeObj.simpad.behaviors.move.speed);
+                      $(v).val(this.options.simpad.behaviors.move.speed);
                       break;
                     case "degrees":
-                      $(v).val(this.activeObj.simpad.behaviors.rotate.degrees);
+                      $(v).val(this.options.simpad.behaviors.rotate.degrees);
+                      $('#rangevalue').val($('input[name="degrees"]').val());
+                      break;
+                    case "target":
+                      this.populateDropdown();
                       break;
                    default:
                       break;
@@ -91,44 +92,90 @@ define(["jquery", "backbone", "fabric", "models/Element", "text!templates/behavi
                 $.each($.map(this.serializeArray(), elementMapper), appendToResult);
                 return o;
               };
-
               var inp = inputs.serializeObject();
 
+              console.log(inp);
+
               _.each(inp, function(v, k) {
-                if(this.activeObj) {
+                if(this.options.active === true) {
                   switch(k) {
                     case "name":
-                      this.activeObj.simpad.name = v;
+                      this.options.simpad.name = v;
                       break;
                     case "type":
-                      this.activeObj.simpad.type = v;
+                      this.options.simpad.type = v;
                       break;
                     case "direction":
-                      this.activeObj.simpad.behaviors.move.direction = v;
+                      this.options.simpad.behaviors.move.direction = v;
                       break;
                     case "speed":
-                      this.activeObj.simpad.behaviors.move.speed = v;
+                      this.options.simpad.behaviors.move.speed = v;
                       break;
                     case "degrees":
-                      this.activeObj.simpad.behaviors.rotate.degrees = parseFloat(v);
+                      this.options.simpad.behaviors.rotate.degrees = parseFloat(v);
                       break;
                     case "target":
-                      this.activeObj.simpad.behaviors.circle.target = v;
+                      this.options.simpad.behaviors.circle.target = v;
                       break;
                    default:
                       break;
                   }
                 }
               }, this);
-              this.activeObj.set({"simpad": this.activeObj.simpad});
+              this.options.set({"simpad": this.options.simpad});
 
               this.saveBehavior();
-              return this.activeObj;
+              return this.options;
+
+            },
+
+            populateDropdown: function() {
+              var objects = canvas.getObjects(); // Get all objects on canvas again since we need to manipulate inactive objects
+
+              if(objects) {
+                $('#dropdown_circle').empty();
+                $('#dropdown_circle').append('<option class="dropdown_circle_target" value="">Choose...</option>');
+
+                output = [];
+                inactiveObjects = [];
+
+                while(inactiveObjects.length > 0) {
+                  inactiveObjects.pop();
+                  output.pop();
+                }
+
+                _.each(objects, function(object) {
+                  if(object.active === false && object.simpad) {
+                    inactiveObjects.push(object);
+                  }
+                }, this);
+
+                if(inactiveObjects.length !=0) {
+                  for(var i = 0, len = inactiveObjects.length; i < len; i++) {
+                    output.push('<option class="dropdown_circle_target" value="' + inactiveObjects[i].simpad.name + '">' + inactiveObjects[i].simpad.name + '</option>');
+                  }
+
+                  $('#dropdown_circle').append(output.join(''));
+                }
+              }
+
+              var target = this.options.simpad.behaviors.circle.target;
+
+              $("#dropdown_circle option").filter(function() {
+                return this.text == target;
+              }).prop('selected', true);
 
             },
 
             saveBehavior: function() {
-              this.eventProxy.trigger('canvas:save');
+              try {
+                this.eventProxy.trigger('canvas:save');
+              } catch(e) {
+                console.log("Error when triggering save: " + e);
+              } finally {
+                console.log("Successfully saved");
+                this.close();
+              }
             }
 
         });

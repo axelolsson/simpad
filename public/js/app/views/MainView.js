@@ -99,7 +99,6 @@ define(["jquery", "backbone", "fabric", "hammer", "models/Element", "collections
             saveCanvas: function(event) {
 
               var c = canvas.toObject();
-              console.log(c);
               if(_.size(this.collection) === 0) {
                 this.collection.create({canvas: c});
               } else {
@@ -209,43 +208,12 @@ define(["jquery", "backbone", "fabric", "hammer", "models/Element", "collections
                   currentState.push(objects[i]);
                 };
 
-                console.log(currentState);
-
               },
 
               objectSelectedHandler: function(event) {
 
                 if(event.target.type === "group") {
                   this.behaviorView = new BehaviorView({objects: event.target, eventProxy: this.eventProxy});
-
-                  objects = canvas.getObjects();
-                  $('#rangevalue').val($('input[name="degrees"]').val());
-                  if(objects) {
-                    $('#dropdown_circle').empty();
-
-                    output = [];
-                    inactiveObjects = [];
-
-                    while (inactiveObjects.length > 0) {
-                        inactiveObjects.pop();
-                        output.pop();
-                    }
-
-                    _.each(objects, function(object) {
-                      if(object.active === false) {
-                        inactiveObjects.push(object);
-                      }
-                    }, this);
-
-                    if(inactiveObjects.length !=0) {
-                      for(var i = 0, len = inactiveObjects.length; i < len; i++) {
-                        output.push('<option class="dropdown_circle_target" value="' + inactiveObjects[i].simpad.name + '">' + inactiveObjects[i].simpad.name + '</option>');
-                      }
-
-                      $('#dropdown_circle').append(output.join(''));
-                      $('#dropdown_circle').prepend('<option class="dropdown_circle_target" value="">Choose...</option>');
-                    }
-                  }
                 }
               },
 
